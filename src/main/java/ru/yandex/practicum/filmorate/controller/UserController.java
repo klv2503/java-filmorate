@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.DuplicateData;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -14,10 +14,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
+@Slf4j
 @RequestMapping("/users")
 public class UserController {
 
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
     private final Map<Long, User> users = new HashMap<>();
 
     @GetMapping
@@ -26,46 +26,14 @@ public class UserController {
     }
 
     @PostMapping
-    public @ResponseBody User create(@RequestBody User user) {
-        // проверяем валидность логина
-        if (user.getLogin() == null || user.getLogin().isBlank()) {
-            log.warn("Not created {}", user);
-            throw new ValidationException("Логин пользователя не может быть пустым", user);
-        }
-        if (user.getLogin().contains(" ")) {
-            log.warn("Not created {}", user);
-            throw new ValidationException("Логин пользователя не может содержать пробелы", user);
-        }
+    public @ResponseBody User create(@Valid @RequestBody User user) {
         if (isUsedLogin(user.getLogin())) {
-            log.warn("Not created {}", user);
+            log.warn("\nNot created {}", user);
             throw new DuplicateData("Этот login уже используется", user);
         }
-// проверяем валидность e-mail
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            log.warn("Not created {}", user);
-            throw new ValidationException("E-mail пользователя не может быть пустым", user);
-        }
-        if (!user.getEmail().contains("@")) {
-            log.warn("Not created {}", user);
-            throw new ValidationException("E-mail пользователя должен содержать знак '@'", user);
-        }
-        if (user.getEmail().indexOf("@") != user.getEmail().lastIndexOf("@")) {
-            log.warn("Not created {}", user);
-            throw new ValidationException("E-mail пользователя должен ровно один знак '@'", user);
-        }
         if (isUsedEmail(user.getEmail())) {
-            log.warn("Not created {}", user);
+            log.warn("\nNot created {}", user);
             throw new DuplicateData("Этот e-mail уже используется", user);
-        }
-        // проверяем валидность даты рождения
-        try {
-            LocalDate usersDate = user.getBirthday();
-            if (LocalDate.now().isBefore(usersDate)) {
-                throw new RuntimeException("");
-            }
-        } catch (RuntimeException e) {
-            log.warn("Not created {}", user);
-            throw new ValidationException("Некорректные данные даты рождения", user);
         }
         // формируем дополнительные данные
         user.setId(getNextId());
@@ -74,36 +42,39 @@ public class UserController {
         }
         // сохраняем нового пользователя в памяти приложения
         users.put(user.getId(), user);
-        log.info("Successfully created {}", user);
+        log.info("\nSuccessfully created {}", user);
         return user;
     }
 
     @PutMapping
     public @ResponseBody User update(@RequestBody User newUser) {
-        // проверяем необходимые условия
+        // Метод пока оставил без правок. Хотелось бы принять методологию
+        // "Если пользователь найден, то корректные данные из запроса применяются, некорректные игнорируются".
+        // Но тогда @Valid использовать не получается, т.к. получится исключение и отказ в изменениях. Уверен,
+        // что валидацию аннотациями и здесь можно реализовать, но пока не знаю как
         if (newUser.getId() == null) {
-            log.warn("Not updated {}", newUser);
+            log.warn("\nNot updated {}", newUser);
             throw new NotFoundException("Id должен быть указан", newUser);
         }
         if (users.containsKey(newUser.getId())) {
             User oldUser = users.get(newUser.getId());
             if (newUser.getLogin() == null || newUser.getLogin().isBlank()
                     || newUser.getLogin().contains(" ")) {
-                log.warn("Not updated {}", newUser);
+                log.warn("\nNot updated {}", newUser);
                 return oldUser;
             }
-            if (!newUser.getLogin().equals(oldUser.getLogin()) && isUsedLogin(newUser.getLogin())) {
-                log.warn("Not updated {}", newUser);
+            if (!oldUser.getLogin().equals(newUser.getLogin()) && isUsedLogin(newUser.getLogin())) {
+                log.warn("\nNot updated {}", newUser);
                 throw new DuplicateData("Этот login уже используется", newUser);
             }
             if (newUser.getEmail() == null || newUser.getEmail().isBlank()
                     || !newUser.getEmail().contains("@") ||
                     newUser.getEmail().indexOf("@") != newUser.getEmail().lastIndexOf("@")) {
-                log.warn("Not updated {}", newUser);
+                log.warn("\nNot updated {}", newUser);
                 return oldUser;
             }
             if (!oldUser.getEmail().equals(newUser.getEmail()) && isUsedEmail(newUser.getEmail())) {
-                log.warn("Not updated {}", newUser);
+                log.warn("\nNot updated {}", newUser);
                 throw new DuplicateData("Этот e-mail уже используется", newUser);
             }
             // проверяем валидность даты рождения
@@ -111,7 +82,7 @@ public class UserController {
                 try {
                     LocalDate usersDate = newUser.getBirthday();
                 } catch (RuntimeException e) {
-                    log.warn("Not updated {}", newUser);
+                    log.warn("\nNot updated {}", newUser);
                     throw new ValidationException("Некорректные данные даты рождения", newUser);
                 }
             }
@@ -126,10 +97,10 @@ public class UserController {
                 if (!LocalDate.now().isBefore(newUser.getBirthday()))
                     oldUser.setBirthday(newUser.getBirthday());
             }
-            log.info("Successfully updated {}.", oldUser);
+            log.info("\nSuccessfully updated {}.", oldUser);
             return oldUser;
         }
-        log.warn("Not updated {}", newUser);
+        log.warn("\nNot updated {}", newUser);
         throw new NotFoundException("Пользователь с id = " + newUser.getId() + " не найден", newUser);
     }
 

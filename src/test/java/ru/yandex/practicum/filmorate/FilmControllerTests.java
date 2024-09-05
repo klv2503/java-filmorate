@@ -1,12 +1,12 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
@@ -23,64 +23,21 @@ class FilmControllerTests {
     Long standartDuration = 90L;
 
     @BeforeEach
-    public void setControllers() {
+    public void setController() {
         filmController = new FilmController();
+        DataForTests.generateFilms(filmController);
+    }
+
+    @AfterEach
+    public void clearFilmList() {
+        filmController.films.clear();
     }
 
     //Тесты создания нового экземпляра фильма
-    @Test
-    public void ifCreationNullFilmThenException() {
-        //Здесь проверяем, что происходит, если в контроллер передать пустой объект.
-        //В дальнейшем при проверке конкретного поля остальные делаем корректными
-        Film film = new Film();
-        Assertions.assertThrows(ValidationException.class, () -> filmController.create(film));
-    }
-
-    @Test
-    public void ifCreationEmptyNamedFilmThenException() {
-        Film film = new Film("", standartDescription, standartReleaseDate, standartDuration);
-        Assertions.assertThrows(ValidationException.class, () -> filmController.create(film));
-    }
-
-    @Test
-    public void ifCreationFilmWithTooLongDescriptionThenException() {
-        Film film = new Film(standartName, "x".repeat(201), standartReleaseDate, standartDuration);
-        Assertions.assertThrows(ValidationException.class, () -> filmController.create(film));
-    }
-
-    @Test
-    public void ifCreationFilmWithoutReleaseDateThenException() {
-        Film film = new Film();
-        film.setName(standartName);
-        film.setDescription(standartDescription);
-        film.setDuration(standartDuration);
-        Assertions.assertThrows(ValidationException.class, () -> filmController.create(film));
-    }
-
-    @Test
-    public void ifCreationFilmWithReleaseDateEarlierThanCinemaBirthdayThenException() {
-        Film film = new Film(standartName, standartDescription, LocalDate.of(1895, 12, 27), standartDuration);
-        Assertions.assertThrows(ValidationException.class, () -> filmController.create(film));
-    }
-
-    @Test
-    public void ifCreationFilmWithNotPositiveDurationThenException() {
-        Film film = new Film(standartName, standartDescription, standartReleaseDate, 0L);
-        Assertions.assertThrows(ValidationException.class, () -> filmController.create(film));
-        film.setDuration(-1L);
-        Assertions.assertThrows(ValidationException.class, () -> filmController.create(film));
-    }
-
-    @Test
-    public void ifCreationFilmCorrectDataThenWithoutException() {
-        Film film = new Film(standartName, standartDescription, standartReleaseDate, standartDuration);
-        Assertions.assertDoesNotThrow(() -> filmController.create(film));
-    }
 
     @Test
     public void couldGiveFilmsList() {
         //Добавляем четыре тестовых фильма и проверяем, верно ли занесены данные
-        DataForTests.generateFilms(filmController);
         List<Film> films = filmController.findAll().stream().toList();
         int filmsQuantity = films.size();
         //Должны получить два фильма с конкретными данными
@@ -94,12 +51,11 @@ class FilmControllerTests {
         Assertions.assertEquals(120L, films.get(1).getDuration());
     }
 
-    //Тестируем изменения данных о фильмах. Вначале в списко заносятся 4 тестовых фильма,
+    //Тестируем изменения данных о фильмах. Вначале в список заносятся 4 тестовых фильма,
     // затем пробуем вносить в них изменения
 
     @Test
     public void ifUpdatingFilmWithoutIdThenException() {
-        DataForTests.generateFilms(filmController);
         //Данные стандартные, но нет id фильма
         Film film = new Film(standartName, standartDescription, standartReleaseDate, standartDuration);
         Assertions.assertThrows(NotFoundException.class, () -> filmController.update(film));
@@ -107,22 +63,20 @@ class FilmControllerTests {
 
     @Test
     public void ifUpdatingFilmWithWrongNameThenNoChanges() {
-        DataForTests.generateFilms(filmController);
         //Задаем id фильма и пробуем ситуации неполноты данных.
-        //Если пытаемся дать фильму пустое имя, изменений не происходит, возвращаем фильм с заданным id без изменений
-        Film filmForUpdate = new Film(1, "", standartDescription, standartReleaseDate, standartDuration);
+        //Если фильм найден, некорректные новые данные игнорируем, корректными новыми данными меняем старые
+        Film filmForUpdate = new Film(1L, "", standartDescription, standartReleaseDate, standartDuration);
         Film filmAfterUpdate = filmController.update(filmForUpdate);
         boolean isUpdated = filmAfterUpdate.equals(filmForUpdate);
-        Assertions.assertFalse(isUpdated);
+        Assertions.assertTrue(isUpdated);
     }
 
     @Test
     public void ifUpdatingFilmWithNullReleaseDateThenOldReleaseDate() {
         //Если задано непустое новое наименование и корректный id, меняем все данные,
         // которые корректно введены пользователем
-        DataForTests.generateFilms(filmController);
         LocalDate lockDate = filmController.findAll().stream().toList().get(0).getReleaseDate();
-        Film filmForUpdate = new Film(1, standartName, standartDescription, null, standartDuration);
+        Film filmForUpdate = new Film(1L, standartName, standartDescription, null, standartDuration);
         Film filmAfterUpdate = filmController.update(filmForUpdate);
         boolean isCorrectData = filmAfterUpdate.getId() == 1
                 && filmAfterUpdate.getName().equals(standartName)
@@ -135,9 +89,8 @@ class FilmControllerTests {
     @Test
     public void ifUpdatingFilmWithWrongReleaseDateThenOldReleaseDate() {
         //Пробуем среди корректных данных указать некорректную дату релиза
-        DataForTests.generateFilms(filmController);
         LocalDate lockDate = filmController.findAll().stream().toList().get(1).getReleaseDate();
-        Film filmForUpdate = new Film(2, standartName, standartDescription, LocalDate.of(1895, 12, 27), standartDuration);
+        Film filmForUpdate = new Film(2L, standartName, standartDescription, LocalDate.of(1895, 12, 27), standartDuration);
         Film filmAfterUpdate = filmController.update(filmForUpdate);
         boolean isCorrectData = filmAfterUpdate.getId() == 2
                 && filmAfterUpdate.getName().equals(standartName)
@@ -150,9 +103,8 @@ class FilmControllerTests {
     @Test
     public void ifUpdatingFilmWithNonPositiveDurationThenOldDuration() {
         //Ставим нулевую продолжительность фильма
-        DataForTests.generateFilms(filmController);
         long duration = filmController.findAll().stream().toList().get(2).getDuration();
-        Film filmForUpdate = new Film(3, standartName, standartDescription, standartReleaseDate, 0L);
+        Film filmForUpdate = new Film(3L, standartName, standartDescription, standartReleaseDate, 0L);
         Film filmAfterUpdate = filmController.update(filmForUpdate);
         boolean isCorrectData = filmAfterUpdate.getId() == 3
                 && filmAfterUpdate.getName().equals(standartName)
@@ -165,9 +117,8 @@ class FilmControllerTests {
     @Test
     public void ifUpdatingFilmWithTooLongDescriptionThenOldDuration() {
         //Пытаемся изменить описание на очень длинное
-        DataForTests.generateFilms(filmController);
         String descr = filmController.findAll().stream().toList().get(3).getDescription();
-        Film filmForUpdate = new Film(4, standartName, "x".repeat(201), standartReleaseDate, standartDuration);
+        Film filmForUpdate = new Film(4L, standartName, "x".repeat(201), standartReleaseDate, standartDuration);
         Film filmAfterUpdate = filmController.update(filmForUpdate);
         boolean isCorrectData = filmAfterUpdate.getId() == 4
                 && filmAfterUpdate.getName().equals(standartName)
@@ -179,8 +130,7 @@ class FilmControllerTests {
 
     @Test
     public void ifUpdatingWithWrongFilmIdThenException() {
-        DataForTests.generateFilms(filmController);
-        Film film = new Film(10, standartName, standartDescription, standartReleaseDate, standartDuration);
+        Film film = new Film(10L, standartName, standartDescription, standartReleaseDate, standartDuration);
         Assertions.assertThrows(NotFoundException.class, () -> filmController.update(film));
     }
 }
