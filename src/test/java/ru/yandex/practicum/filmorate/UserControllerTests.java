@@ -4,9 +4,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.UserController;
-import ru.yandex.practicum.filmorate.exception.DuplicateData;
+import ru.yandex.practicum.filmorate.exception.DuplicateDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,14 +23,14 @@ public class UserControllerTests {
 
     @BeforeEach
     public void setController() {
-        userController = new UserController();
+        userController = new UserController(new UserService(new InMemoryUserStorage()));
     }
 
     @Test
     public void couldGiveUsersList() {
         //Добавляем четыре тестовых фильма и проверяем, все ли фильмы на месте и верно ли занесены данные
         DataForTests.generateUsers(userController);
-        List<User> users = userController.findAll().stream().toList();
+        List<User> users = userController.getAll().stream().toList();
         int usersQuantity = users.size();
         //Должны получить два фильма с конкретными данными
         Assertions.assertEquals(4, usersQuantity);
@@ -76,25 +78,29 @@ public class UserControllerTests {
     }
 
     @Test
-    public void ifUpdatingUserWithWrongEmailThenNoChanges() {
+    public void ifUpdatingUserWithWrongEmailThenOldEmailAfterChanges() {
         DataForTests.generateUsers(userController);
-        //Если пытаемся дать фильму некорректный e-mail,
+        //Если пытаемся дать юзеру некорректный e-mail,
         // изменений не происходит, возвращаем юзера с заданным id без изменений
         User user = new User(1L, "abracadabra.user.net", standartLogin, standartName, standartBirthday);
-        User userAfterUpdate = userController.update(user);
-        boolean isUpdated = userAfterUpdate.equals(user);
-        Assertions.assertFalse(isUpdated);
+        userController.update(user);
+        User userAfterUpdate = userController.getAll().get(0);
+        user.setEmail("first@error.com");
+        boolean isEqual = userAfterUpdate.equals(user);
+        Assertions.assertTrue(isEqual);
     }
 
     @Test
-    public void ifUpdatingUserWithTwiceAtEmailThenNoChanges() {
+    public void ifUpdatingUserWithTwiceAtEmailThenOldEmailAfterChanges() {
         DataForTests.generateUsers(userController);
         //Если пытаемся дать фильму некорректный e-mail,
         // изменений не происходит, возвращаем юзера с заданным id без изменений
         User user = new User(1L, "abracadabra@user@net", standartLogin, standartName, standartBirthday);
-        User userAfterUpdate = userController.update(user);
-        boolean isUpdated = userAfterUpdate.equals(user);
-        Assertions.assertFalse(isUpdated);
+        userController.update(user);
+        User userAfterUpdate = userController.getAll().get(0);
+        user.setEmail("first@error.com");
+        boolean isEqual = userAfterUpdate.equals(user);
+        Assertions.assertTrue(isEqual);
     }
 
     @Test
@@ -102,7 +108,7 @@ public class UserControllerTests {
         DataForTests.generateUsers(userController);
         //Если пытаемся дать фильму e-mail, который занят другим пользователем, получаем исключение
         User user = new User(3L, "second@error.com", standartLogin, standartName, standartBirthday);
-        Assertions.assertThrows(DuplicateData.class, () -> userController.create(user));
+        Assertions.assertThrows(DuplicateDataException.class, () -> userController.create(user));
     }
 
     @Test
@@ -121,7 +127,7 @@ public class UserControllerTests {
         // а день рождения сохраняем установленный ранее
         DataForTests.generateUsers(userController);
         final LocalDate lockDate;
-        lockDate = userController.findAll().stream().toList().get(0).getBirthday();
+        lockDate = userController.getAll().stream().toList().get(0).getBirthday();
         User user = new User(1L, standartEmail, standartLogin, standartName, null);
         User userAfterUpdate = userController.update(user);
         boolean isCorrectData = userAfterUpdate.getId() == 1
@@ -135,7 +141,7 @@ public class UserControllerTests {
     public void ifUpdatingFilmWithWrongBirthdayThenOldBirthday() {
         //Пробуем среди корректных данных указать некорректную дату релиза
         DataForTests.generateUsers(userController);
-        final LocalDate lockDate = userController.findAll().stream().toList().get(1).getBirthday();
+        final LocalDate lockDate = userController.getAll().stream().toList().get(1).getBirthday();
         User user = new User(2L, standartEmail, standartLogin, standartName, LocalDate.now().plusDays(1));
         User userAfterUpdate = userController.update(user);
         boolean isCorrectData = userAfterUpdate.getId() == 2
@@ -170,7 +176,7 @@ public class UserControllerTests {
         //Пытаемся изменить данные о пользователе, указывая новый логин, который занят другим пользователем
         DataForTests.generateUsers(userController);
         User user = new User(4L, standartEmail, "firstLogin", standartName, standartBirthday);
-        Assertions.assertThrows(DuplicateData.class, () -> userController.update(user));
+        Assertions.assertThrows(DuplicateDataException.class, () -> userController.update(user));
     }
 
     @Test

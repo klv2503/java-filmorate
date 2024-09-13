@@ -1,36 +1,91 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @RestController
 @Slf4j
 @RequestMapping("/films")
+@RequiredArgsConstructor
 public class FilmController {
-    // строго говоря, первый публичный сеанс братья Люмьер провели 22.03.1895,
-    // но задание есть задание
-    private static final LocalDate cinemaBirthday = LocalDate.of(1895, 12, 28);
-    private static final int maxDescriptionLength = 200;
-    public static Map<Long, Film> films = new HashMap<>();
+
+    private final FilmService filmService;
+
+    @GetMapping("/popular")
+    public Collection<Film> findFilms(@RequestParam(required = false, defaultValue = "10") String count) {
+        log.info("\nGetting {} most popular films", count);
+        //Решил сразу контролировать корректность параметра.
+        //Здесь и далее числа принимаются в формате строки с тем, чтобы устроить защиту от дурака (скорее, вредителя)
+        int howFilms;
+        if (isPositiveNumber(count)) {
+            howFilms = Integer.parseInt(count);
+        } else
+            throw new ValidationException("Параметром должно быть положительное число. Введено: " + count,
+                    "Параметром должно быть положительное число. Введено: " + count);
+        return filmService.getPopularFilms(howFilms);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public List<User> addUsersLike(@PathVariable String id, @PathVariable String userId) {
+        log.info("\nAdding of like to film {} from user {}", id, userId);
+        long filmNum;
+        long userNum;
+        if (isPositiveNumber(id)) {
+            filmNum = Long.parseLong(id);
+        } else {
+            throw new ValidationException("Параметром id должно быть положительное число. Введено: " + id,
+                    "Параметром id должно быть положительное число. Введено: " + id);
+        }
+        if (isPositiveNumber(userId)) {
+            userNum = Long.parseLong(userId);
+        } else {
+            throw new ValidationException("Параметром userId должно быть положительное число. Введено: " + userId,
+                    "Параметром userId должно быть положительное число. Введено: " + userId);
+        }
+        return filmService.addUsersLike(filmNum, userNum);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public List<User> deleteUsersLike(@PathVariable String id, @PathVariable String userId) {
+        log.info("\nDeleting of like to film {} from user {}", id, userId);
+        long filmNum;
+        long userNum;
+        if (isPositiveNumber(id)) {
+            filmNum = Long.parseLong(id);
+        } else {
+            throw new ValidationException("Параметром id должно быть положительное число. Введено: " + id,
+                    "Параметром id должно быть положительное число. Введено: " + id);
+        }
+        if (isPositiveNumber(userId)) {
+            userNum = Long.parseLong(userId);
+        } else {
+            throw new ValidationException("Параметром userId должно быть положительное число. Введено: " + userId,
+                    "Параметром userId должно быть положительное число. Введено: " + userId);
+        }
+        return filmService.deleteUsersLike(filmNum, userNum);
+    }
 
     @GetMapping
-    public Collection<Film> findAll() {
-        return films.values();
+    public List<Film> findAll() {
+        return filmService.getAll();
     }
 
     @PostMapping
-    public static @ResponseBody Film create(@Valid @RequestBody Film film) {
-        //То, как изменился метод, реально впечатляет
-        film.setId(getNextId());
-        films.put(film.getId(), film);
+    public @ResponseBody Film create(@Valid @RequestBody Film film) {
+        log.info("\nCreation of {}", film);
+        film = filmService.addNewFilm(film);
         log.info("\nSuccessfully created {}", film);
         return film;
     }
@@ -38,44 +93,38 @@ public class FilmController {
     @PutMapping
     public @ResponseBody Film update(@RequestBody Film newFilm) {
         // проверяем необходимые условия
+        log.info("\nUpdating of {}", newFilm);
         if (newFilm.getId() == null) {
             log.info("\nNot updated {}", newFilm);
-            throw new NotFoundException("Id должен быть указан", newFilm);
+            throw new NotFoundException("Id фильма должен быть указан: " + newFilm, newFilm);
         }
-        if (films.containsKey(newFilm.getId())) {
-            Film oldFilm = films.get(newFilm.getId());
-            //Если фильм найден, то меняем в нем данные, на корректные данные запроса, некорректные данные игнорируются
-            if (newFilm.getName() != null || !newFilm.getName().isBlank()) {
-                oldFilm.setName(newFilm.getName());
-            }
-            // проверяем валидность даты релиза
-            if (newFilm.getReleaseDate() != null) {
-                try {
-                    if (!newFilm.getReleaseDate().isBefore(cinemaBirthday)) {
-                        oldFilm.setReleaseDate(newFilm.getReleaseDate());
-                    }
-                } catch (RuntimeException e) {
-                    log.info("\nIllegal release date ignored {}", newFilm);
-                }
-            }
-            if (newFilm.getDescription().length() <= maxDescriptionLength)
-                oldFilm.setDescription(newFilm.getDescription());
-            if (newFilm.getDuration() > 0)
-                oldFilm.setDuration(newFilm.getDuration());
-            log.info("\nSuccessfully updated {}", oldFilm);
-            return oldFilm;
-        }
-        log.info("\nNot updated {}", newFilm);
-        throw new NotFoundException("Фильм с id = " + newFilm.getId() + " не найден", newFilm);
+        return filmService.modifyFilm(newFilm);
     }
 
-    private static long getNextId() {
-        long currentMaxId = films.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    @DeleteMapping
+    public ResponseEntity<String> delete(@RequestParam String id) {
+        log.info("\nDeleting of film id={}", id);
+        long filmId;
+        if (isPositiveNumber(id)) {
+            filmId = Long.parseLong(id);
+        } else {
+            throw new ValidationException("Id фильма должен быть положительным целым числом. Введено: " + id, id);
+        }
+        filmService.deleteFilm(filmId);
+        log.info("\nSuccessfully deleted {}", filmId);
+        return new ResponseEntity<>("Successfully deleted film: id=" + filmId, HttpStatus.OK);
     }
 
+    public boolean isPositiveNumber(String testedString) {
+        long num2Test;
+        try {
+            num2Test = Long.parseLong(testedString);
+            if (num2Test <= 0) {
+                return false;
+            }
+        } catch (RuntimeException e) {
+            return false;
+        }
+        return true;
+    }
 }

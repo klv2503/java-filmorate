@@ -5,14 +5,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.yandex.practicum.filmorate.controller.UserController;
-import ru.yandex.practicum.filmorate.exception.DuplicateData;
+import ru.yandex.practicum.filmorate.exception.DuplicateDataException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
@@ -20,13 +23,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 public class UserControllerCreationTests {
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private UserService userService;
+
     private final Gson gson = DataForTests.getGson();
 
     User goodUser = new User("without@error.com", "correctLogin", "CorrectName",
             LocalDate.of(2000, 10, 10));
 
-    @Autowired
-    private MockMvc mockMvc;
 
     @Test
     public void ifCreationCorrectUserThenOk() throws Exception {
@@ -180,25 +187,25 @@ public class UserControllerCreationTests {
     @Test
     public void ifCreationUserWithUsedLoginThenException() {
         //Создаем несколько пользователей, у одного из них есть login, указанный у добавляемого
-        UserController userController = new UserController();
+        UserController userController = new UserController(new UserService(new InMemoryUserStorage()));
         DataForTests.generateUsers(userController);
         User user = new User(goodUser.getEmail(), "thirdLogin", goodUser.getName(), goodUser.getBirthday());
-        Assertions.assertThrows(DuplicateData.class, () -> userController.create(user));
+        Assertions.assertThrows(DuplicateDataException.class, () -> userController.create(user));
     }
 
     @Test
     public void ifCreationUserWithUsedEmailThenException() {
         //Создаем несколько пользователей, у одного из них есть e-mail, указанный у добавляемого
-        UserController userController = new UserController();
+        UserController userController = new UserController(new UserService(new InMemoryUserStorage()));
         DataForTests.generateUsers(userController);
         User user = new User("second@error.com", goodUser.getLogin(), goodUser.getName(), goodUser.getBirthday());
-        Assertions.assertThrows(DuplicateData.class, () -> userController.create(user));
+        Assertions.assertThrows(DuplicateDataException.class, () -> userController.create(user));
     }
 
     //Если name не задано, то в него заносится login
     @Test
     public void ifCreationUserWithEmptyNameThenNameEqualsLogin() {
-        UserController userController = new UserController();
+        UserController userController = new UserController(new UserService(new InMemoryUserStorage()));
         User user = new User(goodUser.getEmail(), goodUser.getLogin(), "", goodUser.getBirthday());
         User createdUser = userController.create(user);
         boolean isCorrectData = createdUser.getEmail().equals(user.getEmail())

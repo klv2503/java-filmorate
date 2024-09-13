@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -11,6 +12,7 @@ import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.time.LocalDate;
 
@@ -19,15 +21,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(FilmController.class)
 public class FilmControllerCreationTests {
 
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private FilmService filmService;
+
     private final Gson gson = DataForTests.getGson();
 
     Film errorDateFilm = new Film("ErrorTestName", "ErrorTestDescr",
             LocalDate.of(1895, 10, 10), 100L);
     Film goodFilm = new Film("GoodTestName", "GoodTestDescr",
             LocalDate.of(2010, 5, 5), 120L);
-
-    @Autowired
-    private MockMvc mockMvc;
 
     @Test
     public void ifCreationCorrectFilmThenOk() throws Exception {

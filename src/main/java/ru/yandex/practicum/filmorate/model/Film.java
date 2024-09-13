@@ -4,9 +4,13 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import ru.yandex.practicum.filmorate.validators.ReleaseDateConstraint;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Film.
@@ -31,6 +35,9 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     Long duration; //пока предполагаем продолжительность в минутах
 
+    //Множество id лайкнувших юзеров в порядке увеличения id
+    Set<Long> usersLikes = new TreeSet<>((l1, l2) -> Math.toIntExact(l1 - l2));
+
     public Film(String name, String description, LocalDate localDate, long duration) {
         this.name = name;
         this.description = description;
@@ -38,4 +45,11 @@ public class Film {
         this.duration = duration;
     }
 
+    public Film(Long id, String name, String description, LocalDate localDate, long duration) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = localDate;
+        this.duration = duration;
+    }
 }
