@@ -30,13 +30,7 @@ class FilmControllerTests {
         DataForTests.generateFilms(filmController);
     }
 
-    /*@AfterEach
-    public void clearFilmList() {
-        filmController.films.clear();
-    }
-*/
     //Тесты создания нового экземпляра фильма
-
     @Test
     public void couldGiveFilmsList() {
         //Добавляем четыре тестовых фильма и проверяем, верно ли занесены данные

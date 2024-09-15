@@ -28,7 +28,7 @@ public class FilmService {
         return inMemoryFilmStorage.getAllFilms().stream().toList();
     }
 
-    public List<Film> getPopularFilms(int count) {
+    public List<Film> getPopularFilms(long count) {
         return getAll().stream()
                 .sorted(new Comparator<Film>() {
                     public int compare(Film f1, Film f2) {
@@ -45,27 +45,27 @@ public class FilmService {
     }
 
     public Film modifyFilm(Film film) {
-            Film preparedFilm = new Film();
-            preparedFilm.setId(film.getId());
-            //Корректные данные будут изменены, некорректные - проигнорированы
-            if (film.getName() != null || !film.getName().isBlank()) {
-                preparedFilm.setName(film.getName());
-            }
-            // проверяем валидность даты релиза
-            if (film.getReleaseDate() != null) {
-                try {
-                    if (!film.getReleaseDate().isBefore(cinemaBirthday)) {
-                        preparedFilm.setReleaseDate(film.getReleaseDate());
-                    }
-                } catch (RuntimeException e) {
-                    log.info("\nIllegal release date ignored {}", film);
+        Film preparedFilm = new Film();
+        preparedFilm.setId(film.getId());
+        //Корректные данные будут изменены, некорректные - проигнорированы
+        if (film.getName() != null || !film.getName().isBlank()) {
+            preparedFilm.setName(film.getName());
+        }
+        // проверяем валидность даты релиза
+        if (film.getReleaseDate() != null) {
+            try {
+                if (!film.getReleaseDate().isBefore(cinemaBirthday)) {
+                    preparedFilm.setReleaseDate(film.getReleaseDate());
                 }
+            } catch (RuntimeException e) {
+                log.info("\nIllegal release date ignored {}", film);
             }
-            if (film.getDescription().length() <= maxDescriptionLength)
-                preparedFilm.setDescription(film.getDescription());
-            if (film.getDuration() > 0)
-                preparedFilm.setDuration(film.getDuration());
-            return inMemoryFilmStorage.changeFilm(preparedFilm);
+        }
+        if (film.getDescription().length() <= maxDescriptionLength)
+            preparedFilm.setDescription(film.getDescription());
+        if (film.getDuration() > 0)
+            preparedFilm.setDuration(film.getDuration());
+        return inMemoryFilmStorage.changeFilm(preparedFilm);
     }
 
     public void deleteFilm(Long filmId) {
