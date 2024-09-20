@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.validators.UsersLoginConstraint;
 
 import java.time.LocalDate;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 @NoArgsConstructor
@@ -30,7 +32,18 @@ public class User {
     @PastOrPresent(message = "Некорректная дата рождения")
     LocalDate birthday; //дата рождения
 
+    //Множество id друзей в порядке увеличения id
+    Set<Long> friends = new TreeSet<>((l1, l2) -> Math.toIntExact(l1 - l2));
+
     public User(String email, String login, String name, LocalDate birthday) {
+        this.email = email;
+        this.login = login;
+        this.name = name;
+        this.birthday = birthday;
+    }
+
+    public User(long id, String email, String login, String name, LocalDate birthday) {
+        this.id = id;
         this.email = email;
         this.login = login;
         this.name = name;
