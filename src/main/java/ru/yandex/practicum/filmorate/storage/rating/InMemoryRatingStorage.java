@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Component("inMemoryRatingStorage")
-public class inMemoryRatingStorage implements RatingStorage {
+public class InMemoryRatingStorage implements RatingStorage {
 
     Map<Long, Rating> ratingMap = new HashMap<>();
 
