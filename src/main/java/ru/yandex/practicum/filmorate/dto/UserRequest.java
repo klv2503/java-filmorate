@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.validators.UsersLoginConstraint;
 
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
+@RequiredArgsConstructor
 public class UserRequest {
 
     @Positive(message = "Users id must be positive")
