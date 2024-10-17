@@ -52,7 +52,7 @@ public class RatingDbFilmorateApplicationTests {
     public void testCreateRating() {
 
         Rating rating = new Rating();
-        rating.setName("Abrakadabra");
+        rating.setName("Abraka");
         rating.setDescription("Nothing");
 
         Rating createdRating = ratingStorage.createRating(rating);
@@ -75,7 +75,7 @@ public class RatingDbFilmorateApplicationTests {
     @Test
     public void testDeleteRating() {
         Rating rating = new Rating();
-        rating.setName("Abrakadabra");
+        rating.setName("Abraka");
         rating.setDescription("Nothing");
         ratingStorage.createRating(rating);
         Rating mpa = ratingStorage.findByName(rating.getName())
