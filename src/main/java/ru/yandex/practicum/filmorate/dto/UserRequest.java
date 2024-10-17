@@ -4,7 +4,6 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import ru.yandex.practicum.filmorate.validators.UsersLoginConstraint;
 
 import java.time.LocalDate;
@@ -20,11 +19,14 @@ public class UserRequest {
     //Поскольку контроллер теперь принимает userRequest, аннотации перенес в класс UserRequest
     @Email(message = "Некорректный e-mail пользователя")
     @NotBlank(message = "Некорректный e-mail пользователя")
+    @Size(message = "Слишком длинный e-mail (более 50 символов)", max = 50)
     private String email;
 
     @UsersLoginConstraint
+    @Size(message = "Слишком длинный логин (более 15 символов)", max = 15)
     private String login;
 
+    @Size(message = "Слишком длинное имя пользователя (более 200 символов)", max = 200)
     private String name;
 
     @NotNull(message = "Некорректная дата рождения")
