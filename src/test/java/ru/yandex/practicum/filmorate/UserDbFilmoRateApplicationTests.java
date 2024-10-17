@@ -24,9 +24,9 @@ import java.util.Optional;
 class UserDbFilmoRateApplicationTests {
     private final UserDbStorage userStorage;
 
-    User standartUser1 = new User("first@error.com", "firstLogin", "NameTest1",
+    private final User standartUser1 = new User("first@error.com", "firstLogin", "NameTest1",
             LocalDate.of(2000, 10, 10));
-    User standartUser2 = new User("second@error.com", "secondLogin", "NameTest2",
+    private final User standartUser2 = new User("second@error.com", "secondLogin", "NameTest2",
             LocalDate.of(2010, 5, 5));
 
     @Test

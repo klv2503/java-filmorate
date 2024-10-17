@@ -27,7 +27,7 @@ public class FilmDbFilmoRateApplicationTests {
 
     private final FilmDbStorage filmStorage;
 
-    FilmRequest standartFilm = new FilmRequest("Halloween", "Classic horror",
+    private final FilmRequest standartFilm = new FilmRequest("Halloween", "Classic horror",
             LocalDate.of(1978, 10, 25), 101L,
             new Rating(5L, null, null));
 
