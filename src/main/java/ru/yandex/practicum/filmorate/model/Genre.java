@@ -5,24 +5,23 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 @Data
+@NoArgsConstructor(force = true)
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class Genre {
 
     @Positive(message = "Id жанра должен быть положительным числом")
     @NotNull(message = "Id жанра должен быть указан")
-    Long id; //genre_id
+    private final Long id; //genre_id
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    String name;
+    private String name;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    String description;
+    private String description;
 
-    public Genre(Long l) {
-        this.id = l;
-    }
 }

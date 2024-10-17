@@ -9,14 +9,14 @@ import java.util.Map;
 import java.util.Optional;
 
 @Component("inMemoryRatingStorage")
-public class inMemoryRatingStorage implements RatingStorage {
+public class InMemoryRatingStorage implements RatingStorage {
 
     Map<Long, Rating> ratingMap = new HashMap<>();
 
     @Override
     public Rating createRating(Rating rating) {
-        rating.setId(getRatingNextId());
-        ratingMap.put(rating.getId(), rating);
+        Rating newRating = new Rating(getRatingNextId(), rating.getName(), rating.getDescription());
+        ratingMap.put(newRating.getId(), newRating);
         return rating;
     }
 

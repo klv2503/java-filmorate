@@ -23,7 +23,7 @@ public class FilmRequest {
     Long id;
 
     @NotBlank(message = "Название фильма не может быть пустым")
-    @NotNull(message = "Название фильма не может быть пустым")
+    @Size(message = "Слишком длинное название фильма (более 200 символов)", max = 200)
     String name;
 
     @Size(message = "Слишком длинное описание фильма (более 200 символов)", max = 200)

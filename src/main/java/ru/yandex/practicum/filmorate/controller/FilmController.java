@@ -23,8 +23,6 @@ public class FilmController {
     @Autowired
     private final FilmService filmService;
 
-    Gson gson = new Gson();
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public FilmDto create(@Valid @RequestBody FilmRequest request) {

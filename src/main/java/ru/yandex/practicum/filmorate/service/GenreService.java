@@ -40,8 +40,8 @@ public class GenreService {
             throw new DuplicateDataException("Name " + request.getName() + " is already used.", request);
         }
         genre = GenreMapper.mapToGenre(request);
-        genre.setId(id);
-        return GenreMapper.mapToGenreDto(genreDbStorage.modifyGenre(genre));
+        Genre newGenre = new Genre(id, genre.getName(), genre.getDescription());
+        return GenreMapper.mapToGenreDto(genreDbStorage.modifyGenre(newGenre));
     }
 
     public GenreDto deleteGenre(long id) {

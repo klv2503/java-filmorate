@@ -40,8 +40,8 @@ public class RatingService {
             throw new DuplicateDataException("Name " + request.getName() + " is already used.", request);
         }
         rating = RatingMapper.mapToRating(request);
-        rating.setId(id);
-        return RatingMapper.mapToRatingDto(ratingDbStorage.modifyRating(rating));
+        Rating newRating = new Rating(id, rating.getName(), rating.getDescription());
+        return RatingMapper.mapToRatingDto(ratingDbStorage.modifyRating(newRating));
     }
 
     public RatingDto deleteRating(long id) {

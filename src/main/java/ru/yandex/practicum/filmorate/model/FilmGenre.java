@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class FilmGenre {
-    Long id;
-    Long filmId;
-    Long genreId;
+    private Long id;
+    private Long filmId;
+    private Long genreId;
 }

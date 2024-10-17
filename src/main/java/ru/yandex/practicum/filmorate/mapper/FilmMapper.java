@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.model.Rating;
 import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-
 public class FilmMapper {
 
     public static Film mapToFilm(FilmRequest request) {
