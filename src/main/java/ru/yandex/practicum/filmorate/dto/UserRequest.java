@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import ru.yandex.practicum.filmorate.validators.UsersLoginConstraint;
