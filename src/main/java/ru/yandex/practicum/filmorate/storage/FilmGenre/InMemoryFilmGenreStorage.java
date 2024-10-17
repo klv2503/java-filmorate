@@ -10,7 +10,7 @@ import java.util.Map;
 @Component("inMemoryFilmGenreStorage")
 public class InMemoryFilmGenreStorage implements FilmGenreStorage {
 
-    Map<Long, FilmGenre> filmGenres = new HashMap<>();
+    private Map<Long, FilmGenre> filmGenres = new HashMap<>();
 
     @Override
     public List<FilmGenre> getGenresOfFilm(Long id) {

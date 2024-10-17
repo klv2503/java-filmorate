@@ -14,7 +14,7 @@ import java.time.LocalDate;
 public class UserRequest {
 
     @Positive(message = "Users id must be positive")
-    Long id;
+    private Long id;
 
     //Поскольку контроллер теперь принимает userRequest, аннотации перенес в класс UserRequest
     @Email(message = "Некорректный e-mail пользователя")

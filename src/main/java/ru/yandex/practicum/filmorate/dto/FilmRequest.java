@@ -20,26 +20,26 @@ import java.util.List;
 public class FilmRequest {
 
     @Positive(message = "Id фильма должен быть положительным числом")
-    Long id;
+    private Long id;
 
     @NotBlank(message = "Название фильма не может быть пустым")
     @Size(message = "Слишком длинное название фильма (более 200 символов)", max = 200)
-    String name;
+    private String name;
 
     @Size(message = "Слишком длинное описание фильма (более 200 символов)", max = 200)
-    String description;
+    private String description;
 
     @ReleaseDateConstraint(message = "Некорректная дата релиза фильма")
-    LocalDate releaseDate;
+    private LocalDate releaseDate;
 
     @NotNull(message = "Продолжительность фильма должна быть положительным числом")
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
-    Long duration; //пока предполагаем продолжительность в минутах
+    private Long duration; //пока предполагаем продолжительность в минутах
 
     @NotNull(message = "Рейтинг МПА должен быть указан")
-    Rating mpa;
+    private Rating mpa;
 
-    List<Genre> genres; //Для получения списка жанров
+    private List<Genre> genres; //Для получения списка жанров
 
     public FilmRequest(String name, String description, LocalDate releaseDate, Long duration, Rating mpa) {
         this.name = name;

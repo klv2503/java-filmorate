@@ -11,7 +11,7 @@ import java.util.Optional;
 @Component("inMemoryRatingStorage")
 public class InMemoryRatingStorage implements RatingStorage {
 
-    Map<Long, Rating> ratingMap = new HashMap<>();
+    private Map<Long, Rating> ratingMap = new HashMap<>();
 
     @Override
     public Rating createRating(Rating rating) {

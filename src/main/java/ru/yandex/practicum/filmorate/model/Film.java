@@ -15,25 +15,25 @@ import java.util.TreeSet;
 @AllArgsConstructor
 public class Film {
     //Поскольку контроллер теперь принимает FilmRequest, аннотации перенесены в этот класс
-    Long id;
+    private Long id;
 
-    String name;
+    private String name;
 
-    String description;
+    private String description;
 
-    LocalDate releaseDate;
+    private LocalDate releaseDate;
 
-    Long duration; //пока предполагаем продолжительность в минутах
+    private Long duration; //пока предполагаем продолжительность в минутах
 
     //Новое поле для классификации по МПА
-    Long mpaId;
+    private Long mpaId;
 
     @Transient
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    Integer count;
+    private Integer count;
 
     //Множество id лайкнувших юзеров в порядке увеличения id
-    Set<Long> usersLikes = new TreeSet<>((l1, l2) -> Math.toIntExact(l1 - l2));
+    private Set<Long> usersLikes = new TreeSet<>((l1, l2) -> Math.toIntExact(l1 - l2));
 
     public Film(String name, String description, LocalDate localDate, long duration, long mpaId) {
         this.name = name;

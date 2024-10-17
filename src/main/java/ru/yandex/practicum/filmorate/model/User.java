@@ -13,18 +13,18 @@ import java.util.TreeSet;
 @AllArgsConstructor
 public class User {
     //Аннотации перенесены в класс UserRequest
-    Long id; // уникальный идентификатор пользователя,
+    private Long id; // уникальный идентификатор пользователя,
 
-    String email; //электронная почта пользователя
+    private String email; //электронная почта пользователя
 
-    String login; //логин пользователя
+    private String login; //логин пользователя
 
-    String name; //имя пользователя для отображения,
+    private String name; //имя пользователя для отображения,
 
-    LocalDate birthday; //дата рождения
+    private LocalDate birthday; //дата рождения
 
     //Множество id друзей в порядке увеличения id
-    Set<Long> friends = new TreeSet<>((l1, l2) -> Math.toIntExact(l1 - l2));
+    private Set<Long> friends = new TreeSet<>((l1, l2) -> Math.toIntExact(l1 - l2));
 
     public User(String email, String login, String name, LocalDate birthday) {
         this.email = email;

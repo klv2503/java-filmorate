@@ -16,19 +16,19 @@ import java.util.List;
 public class FilmDto {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    Long id;
-    String name;
-    String description;
-    LocalDate releaseDate;
-    Long duration;
-    Rating mpa;
+    private Long id;
+    private String name;
+    private String description;
+    private LocalDate releaseDate;
+    private Long duration;
+    private Rating mpa;
 
     @Transient
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    Integer count;
+    private Integer count;
 
     @Transient
-    List<Genre> genres;
+    private List<Genre> genres;
 
     public FilmDto(Long id, String name, String description, Long duration, LocalDate releaseDate) {
         this.id = id;
